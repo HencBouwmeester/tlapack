@@ -12,6 +12,26 @@ add_custom_command(
   OUTPUT run-all-examples-cmd
   COMMAND echo "Running all examples:" && echo "" )
 
+# add the example geqrf_preprocessed
+add_subdirectory( geqrf_preprocessed )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_geqrf_preprocessed ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/geqrf_preprocessed/example_geqrf_preprocessed${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
+# add the example geqrf_preprocessed_square
+add_subdirectory( geqrf_preprocessed_square )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_geqrf_preprocessed_square ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/geqrf_preprocessed_square/example_geqrf_preprocessed_square${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
 # add the example geqr2
 add_subdirectory( geqr2 )
 add_custom_command(
@@ -21,6 +41,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
+
 # add the example geqrtr
 add_subdirectory( geqrtr )
 add_custom_command(
