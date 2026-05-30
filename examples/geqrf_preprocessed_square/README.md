@@ -1,17 +1,23 @@
-# Example: geqr2
+# Example: geqrf_preprocessed_square
 
-In this example, we compute the QR factorization of a matrix filled with random numbers.
+This example follows Golub and Van Loan, Matrix Computations, 4th edition,
+section 5.6.1, which discusses consistent systems and transforms that
+preserve solvability. However, we use the LQ factorization instead of the QR
+factorization. We quote:
 
-- A is a m-by-n matrix filled with random numbers.
+If the QR factorization is used to solve Ax=b, then we ordinarily have to
+carry out a backsubstitution: Rx = Qᵀb. However, this can be avoided by
+"preprocessing" b. Suppose H is a Householder matrix such that H b = β eₙ
+where eₙ is the last column of Iₙ. If we compute the QR factorization of
+(HA)ᵀ, then A = HᵀRᵀQᵀ and the system transform to Rᵀy = β eₙ where y = Qᵀx.
+Since Rᵀ is lower triangular, y = (β/rₙₙ)eₙ and so y = (β/rₙₙ) Q(:,n).
 
-The code uses the routine [tlapack::geqr2](../../include/lapack/geqr2.hpp) to perform the complete factorization in place, and [tlapack::ung2r](../../include/lapack/ung2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
+- A is a n-by-n matrix filled with random numbers.
+- b is a vector of size n filled with random numbers. 
 
-To examine the accuracy of the method, we measure
-<img src="https://latex.codecogs.com/gif.latex?\|Q^tQ&space;-&space;I\|_F" />
-and
-<img src="https://latex.codecogs.com/gif.latex?\|QR&space;-&space;A\|_F/\|A\|_F" />,
-where F denotes the Frobenius norm.
-so that the expected output is C = 0. In the final step of the algorithm, we use [tlapack::nrm2](../../include/blas/nrm2.hpp) to compute the Frobenius norm of C. The norm must be identically null. Set the `verbose` to `true` if you want to see the contents of each matrix in the standard output.
+The code uses the routine [tlapack::gelqf](../../include/tlapack/lapack/geqrf.hpp) to perform the complete factorization in place, and [tlapack::larfg](../../include/tlapack/lapack/larfg.hpp) to generate the Householder reflector which is used to preprocess the system.  To apply the Householder reflectors, the code uses [tlapack::larf](../../include/tlapack/lapack/larf.hpp).  
+
+Set the `verbose` to `true` if you want to see the contents of each matrix in the standard output.
 
 ## Build
 
@@ -27,7 +33,7 @@ cmake --build build # build step
 
 You will find the executable inside the `build` directory.
 
-2. Using `make` on the same directory of [example_geqr2.cpp](example_geqr2.cpp). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
+2. Using `make` on the same directory of [example_geqrf_preprocessed_square.cpp](example_geqrf_preprocessed_square.cpp). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
 
 ## Run
 
@@ -35,4 +41,4 @@ You can run the executable from the command line. You can pass up to 2 integer a
 
 ---
 
-[Examples](../README.md#geqr2)
+[Examples](../README.md#geqrf_preprocessed_square)
