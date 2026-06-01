@@ -280,17 +280,17 @@ int main(int argc, char** argv)
     run<long double>(n);
     printf("-----------------------\n");
 
-    printf("run< complex<float> >( %d )", n);
-    run<std::complex<float>>(n);
-    printf("-----------------------\n");
+    // printf("run< complex<float> >( %d )", n);
+    // run<std::complex<float>>(n);
+    // printf("-----------------------\n");
 
-    printf("run< complex<double> >( %d )", n);
-    run<std::complex<double>>(n);
-    printf("-----------------------\n");
+    // printf("run< complex<double> >( %d )", n);
+    // run<std::complex<double>>(n);
+    // printf("-----------------------\n");
 
-    printf("run< complex<long double> >( %d )", n);
-    run<std::complex<long double>>(n);
-    printf("-----------------------\n");
+    // printf("run< complex<long double> >( %d )", n);
+    // run<std::complex<long double>>(n);
+    // printf("-----------------------\n");
 
     return 0;
 }
