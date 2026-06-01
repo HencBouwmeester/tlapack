@@ -295,17 +295,17 @@ int main(int argc, char** argv)
     run<long double>(m, n);
     printf("-----------------------\n");
 
-    printf("run< complex<float> >( %d, %d )", m, n);
-    run<std::complex<float>>(m, n);
-    printf("-----------------------\n");
+    // printf("run< complex<float> >( %d, %d )", m, n);
+    // run<std::complex<float>>(m, n);
+    // printf("-----------------------\n");
 
-    printf("run< complex<double> >( %d, %d )", m, n);
-    run<std::complex<double>>(m, n);
-    printf("-----------------------\n");
+    // printf("run< complex<double> >( %d, %d )", m, n);
+    // run<std::complex<double>>(m, n);
+    // printf("-----------------------\n");
 
-    printf("run< complex<long double> >( %d, %d )", m, n);
-    run<std::complex<long double>>(m, n);
-    printf("-----------------------\n");
+    // printf("run< complex<long double> >( %d, %d )", m, n);
+    // run<std::complex<long double>>(m, n);
+    // printf("-----------------------\n");
 
     return 0;
 }
