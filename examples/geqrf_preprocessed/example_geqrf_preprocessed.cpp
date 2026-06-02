@@ -110,34 +110,17 @@ void run(size_t m, size_t n)
     // Initialize arrays with junk
     for (idx_t j = 0; j < n; ++j) {
         for (idx_t i = 0; i < m; ++i) {
-            if constexpr (tlapack::is_complex<T>)
-                A(i, j) = T(static_cast<float>(0xDEADBEEF),
-                            static_cast<float>(0xDEADBEEF));
-            else
-                A(i, j) = T(static_cast<float>(0xDEADBEEF));
+            A(i, j) = T(static_cast<float>(0xDEADBEEF));
         }
-        if constexpr (tlapack::is_complex<T>) {
-            tau[j] = T(static_cast<float>(0xFFBADD11),
-                       static_cast<float>(0xFFBADD11));
-            x_[j] = T(static_cast<float>(0xBAADF00D),
-                      static_cast<float>(0xBAADF00D));
-        }
-        else {
-            tau[j] = T(static_cast<float>(0xFFBADD11));
-            x_[j] = T(static_cast<float>(0xBAADF00D));
-        }
+        tau[j] = T(static_cast<float>(0xFFBADD11));
+        x_[j] = T(static_cast<float>(0xBAADF00D));
     }
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            if constexpr (tlapack::is_complex<T>)
-                A(i, j) = T(
-                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX),
-                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-            else
-                A(i, j) = T(static_cast<float>(rand()) /
-                            static_cast<float>(RAND_MAX));
+            A(i, j) =
+                T(static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
 
     // Copy A to A_orig
     tlapack::lacpy(tlapack::GENERAL, A, A_orig);
@@ -191,10 +174,6 @@ void run(size_t m, size_t n)
         // 3) Compute the QR factorization of (HA)'
         //    2*m*n² - 2/3*n³ FLOPS
         auto HA_T = tlapack::transpose_view(A);
-        if constexpr (tlapack::is_complex<T>)
-            for (idx_t j = 0; j < m; ++j)
-                for (idx_t i = 0; i < n; ++i)
-                    HA_T(i, j) = std::conj(HA_T(i, j));
 
         tlapack::geqrf(HA_T, tau);
 
@@ -214,35 +193,6 @@ void run(size_t m, size_t n)
         //      4*m*n FLOPS
         tlapack::unmqr(tlapack::Side::Left, tlapack::Op::NoTrans, slice_HA_T,
                        slice_tau, x);
-
-        // std::vector<T> Q_;
-        // auto Q = new_matrix(Q_, n, m);
-        // tlapack::lacpy(tlapack::GENERAL, HA_T, Q);
-        // tlapack::ung2r(Q, slice_tau);
-        // std::vector<T> y_;
-        // auto y = new_matrix(y_, m, 1);
-        // tlapack::gemv(tlapack::Op::ConjTrans, static_cast<T>(1.0), Q, x_,
-        //               static_cast<T>(0.0), y_);
-        // y_[n - 1] *= b[m - 1] / HA_T(n - 1, m - 1);
-        // // Print y
-        // if (verbose) {
-        //     std::cout << std::endl << "y = ";
-        //     printVector(y_);
-        //     std::cout << std::endl;
-        // }
-        // std::vector<T> q_(n);
-        // for (idx_t i = 0; i < n; ++i)
-        //     if constexpr (tlapack::is_complex<T>)
-        //         q_[i] =
-        //             (b[m - 1] / HA_T(n - 1, m - 1)) * std::conj(Q(n - 1, i));
-        //     else
-        //         q_[i] = (b[m - 1] / HA_T(n - 1, m - 1)) * Q(n - 1, i);
-        // // Print the last column of Q
-        // if (verbose) {
-        //     std::cout << std::endl << "Q(:,n) = ";
-        //     printVector(q_);
-        //     std::cout << std::endl;
-        // }
 
         // 5) Scale by β/rₙₙ. This is the solution to the system.
         //    n FLOPS
@@ -303,8 +253,8 @@ int main(int argc, char** argv)
     int m, n;
 
     // Default arguments
-    m = (argc < 2) ? 7 : atoi(argv[1]);
-    n = (argc < 3) ? 7 : atoi(argv[2]);
+    m = (argc < 2) ? 199 : atoi(argv[1]);
+    n = (argc < 3) ? 51 : atoi(argv[2]);
 
     srand(3);  // Init random seed
 
@@ -322,18 +272,6 @@ int main(int argc, char** argv)
     printf("run< long double >( %d, %d )", m, n);
     run<long double>(m, n);
     printf("-----------------------\n");
-
-    // printf("run< complex<float> >( %d, %d )", m, n);
-    // run<std::complex<float>>(m, n);
-    // printf("-----------------------\n");
-
-    // printf("run< complex<double> >( %d, %d )", m, n);
-    // run<std::complex<double>>(m, n);
-    // printf("-----------------------\n");
-
-    // printf("run< complex<long double> >( %d, %d )", m, n);
-    // run<std::complex<long double>>(m, n);
-    // printf("-----------------------\n");
 
     return 0;
 }
