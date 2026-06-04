@@ -32,6 +32,16 @@ add_custom_command(
     && echo ""
 )
 
+# add the example geqrt3_flops
+add_subdirectory( geqrt3_flops )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_geqrt3_flops ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/geqrt3_flops/example_geqrt3_flops${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
 # add the example geqrtr
 add_subdirectory( geqrtr )
 add_custom_command(
