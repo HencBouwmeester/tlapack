@@ -1,0 +1,179 @@
+\documentclass[10pt]{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{rotating}
+
+\begin{document}
+\noindent\textbf{\Large Math walkthrough for $F(m,n)$ when $n = 2^k$}
+
+\section{FLOP Count for each step}
+
+See the table.
+
+\begin{sidewaystable}
+    \centering
+    \label{tab:my_label}
+  \begin{tabular}{llcc}
+    \toprule
+    Operation & Function & FLOPS($n_1,n_2,m_3$) & FLOPS($n_1=n_2=n, m_3=m-2n$)\\
+    \midrule
+    Factor left panel & GEQRT3($m\times n_1$, $n_1\times n_1$) & $F(m,n_1)$ & $F(m,n)$\\
+    \midrule
+    Update trailing matrix & TRMM(L, $n_1\times n_1$, $n_1\times n_2$) & $n_1^2n_2$ & $n^3$\\
+    & GEMM($n_1\times n_2$, $n_2\times n_2$, $n_1\times n_2$) & $2n_1n_2n_2$ & $2n^3$\\
+    & GEMM($n_1\times m_3$, $m_3 \times n_2$, $n_1\times n_2$) & $2n_1n_2m_3$ & $2n^2(m-2n)$\\
+    & TRMM(L, $n_1\times n_1$, $n_1\times n_2$) & $n_1^2n_2$ & $n^3$\\
+    & GEMM($n_2\times n_1$, $n_1\times n_2$, $n_2\times n_2$) & $2n_2n_2n_1$ & $2n^3$\\
+    & GEMM($m_3\times n_1$, $n_1\times n_2$, $m_3\times n_2$) & $2m_3n_2n_1$ & $2(m-2n)n^2$\\
+    & TRMM(L,$n_1\times n_1$, $n_1\times n_2$) & $n_1^2n_2$ & $n^3$\\
+    & DIFF($n_1\times n_2$, $n_1 \times n_2$) & $n_1n_2$ & $n^2$\\
+    \midrule
+    Factor right panel & GEQRT3($(m - n_1)\times n_2$, $n_2\times n_2$) &
+    $F(m-n_1,n_2)$ & $F(m-n,n)$ \\
+    \midrule
+    Construct T & TRMM(R, $n_2\times n_2$, $n_1\times n_2$) & $n_1n_2^2$ & $n^3$\\
+    & GEMM($n_1\times m_3$, $m_3\times n_2$, $n_1\times n_2$) & $2n_1n_2m_3$ & $2n^2(m-2n)$\\
+    & TRMM(L, $n_1\times n_1$, $n_1\times n_2$) & $n_1^2n_2$ & $n^3$\\
+    & TRMM(R, $n_2\times n_2$, $n_1\times n_2$) & $n_1n_2^2$ & $n^3$\\
+    \bottomrule
+  \end{tabular}
+\end{sidewaystable}
+
+
+
+\section{Recurrence from the code}
+
+For $n == 1$ the code does one $larfg$ on a vector of length $m$, giving
+\[F(m,1) = 3 m\]
+For $n > 1$ and $n$ a power of two, the code splits
+\[n_1 = n/2\]
+\[n_2 = n/2\]
+and the recurrence becomes
+\[F(m,n) = F(m,n/2) + F(m-n/2,n/2) + C(m,n)\]
+where the local flop contribution from the helper calls is
+\[C(m,n) = n_1 n_2 (6 m - 2 n_1 + 1)\]
+For $n_1=n_2=n/2$ this is
+\[C(m,n) = \frac{n^2}{4}  (6 m - n + 1)\]
+
+\section{Key simplification: $F(m,n)$ is linear in $m$}
+
+We claim that for $n=2^k$, the recurrence
+\[ F(m,n) = F\!\left(m,\frac{n}{2}\right) + F\!\left(m-\frac{n}{2},\frac{n}{2}\right) + \frac{n^2}{4}(6m-n+1) \]
+with base case
+\[ F(m,1)=3m \]
+has the form
+\[ F(m,n)=3n^2m+b(n), \]
+where $b(n)$ is independent of $m$.
+\begin{proof}
+We proceed by induction on $n$.
+
+For the base case $n=1$,
+\[ F(m,1)=3m, \]
+which can be written as
+\[ F(m,1)=3(1)^2m+b(1) \]
+with $b(1)=0$. Thus the claim holds for $n=1$.
+
+Now assume that for some power of two $n/2$,
+\[ F(m,n/2) = 3\left(\frac{n}{2}\right)^2m + b\!\left(\frac{n}{2}\right).  \]
+This is the induction hypothesis.
+
+Substituting the induction hypothesis into the recurrence gives
+\begin{align*}
+F(m,n) &= \left[ 3\left(\frac{n}{2}\right)^2m + b\!\left(\frac{n}{2}\right) \right] \\
+&\quad+ \left[ 3\left(\frac{n}{2}\right)^2 \left(m-\frac{n}{2}\right) + b\!\left(\frac{n}{2}\right) \right] \\
+&\quad+ \frac{n^2}{4}(6m-n+1).
+\end{align*}
+
+Collecting the terms containing $m$,
+\begin{align*}
+\operatorname{coeff}_m(F(m,n))
+&= 3\left(\frac{n}{2}\right)^2 + 3\left(\frac{n}{2}\right)^2 + \frac{n^2}{4}\cdot 6 \\
+&= \frac{3n^2}{4} + \frac{3n^2}{4} + \frac{3n^2}{2} \\
+&= 3n^2.
+\end{align*}
+
+Hence
+\[
+F(m,n) = 3n^2m + \Biggl( 2b\!\left(\frac{n}{2}\right) -\frac{3n^3}{8} -\frac{n^3}{4} +\frac{n^2}{4} \Biggr).
+\]
+
+The expression in parentheses depends only on $n$, so we define
+\[ b(n) = 2b\!\left(\frac{n}{2}\right) -\frac{5}{8}n^3 +\frac{1}{4}n^2.  \]
+
+Therefore
+\[ F(m,n)=3n^2m+b(n), \]
+which completes the induction.
+\end{proof}
+
+%Look at the $m$-dependence:
+%\begin{enumerate}
+    %\item $F(m,n/2)$ has slope $3 (n/2)^2 = 3 n^2 / 4$
+    %\item $F(m-n/2,n/2)$ also has slope $3 n^2 / 4$
+    %\item $C(m,n)$ has slope $6 n_1 n_2 = 6 (n/2)^2 = 3 n^2 / 2$
+%\end{enumerate}
+%So the total slope in $m$ is
+%\[3 n^2 / 4 + 3 n^2 / 4 + 3 n^2 / 2 = 3 n^2\]
+That means for each fixed power-of-two $n$ we can write
+\[F(m,n) = 3 n^2 m + b(n)\]
+with $b(n)$ independent of $m$.
+
+
+\section{Recurrence for the offset $b(n)$}
+
+Plugging $F(m,n)=3 n^2 m + b(n)$ back into the recurrence gives
+\[b(n) = 2 b(n/2) - (5/8) n^3 + (1/4) n^2\]
+This is valid for $n = 2^k$ with $b(1)=0$.
+
+
+\section{Solve $b(n)$ for $n = 2^k$}
+
+Define $n = 2^k$ and $g(k) = b(2^k)$.
+Then the recurrence becomes
+\[g(k) = 2 g(k-1) - (5/8) * 2^{3k} + (1/4) * 2^{2k}\]
+Divide by $2^k$ and set $h(k) = g(k)/2^k$:
+\[h(k) = h(k-1) - (5/8) 4^k + (1/4) 2^k\]
+with $h(0)=0$.
+Now sum over $j$ where $1\leq j \leq k$:
+\[h(k) = - (5/8) \sum_{j=1}^k 4^j + (1/4) \sum_{j=1}^k 2^j\]
+Use the geometric sums:
+\[ \sum_{j=1}^k 4^j = (4^{k+1}-4)/3\]
+\[ \sum_{j=1}^k 2^j = 2^{k+1}-2\]
+So
+\[h(k) = \left(-\frac{5}{8}\right) \left(\frac{4^{k+1}-4}{3}\right) +
+\left(\frac{1}{4}\right)\left(2^{k+1}-2\right)\]
+Because $n=2^k$, this is
+\[h(k) = -\frac{5}{24}(4 n^2 - 4) + \frac{1}{4}(2n - 2)\]
+Simplify carefully:
+\[h(k) = -\frac{5}{6} n^2 + \frac{1}{2} n + \frac{1}{3}\]
+Then
+\[b(n) = n h(k) = -\frac{5}{6} n^3 + \frac{1}{2} n^2 + \frac{1}{3} n\]
+
+
+\section{Final closed form}
+
+For $n = 2^k$, the flop count is
+\[F(m,n) = 3 m n^2 - \frac{5}{6} n^3 + \frac{1}{2} n^2 + \frac{1}{3} n\]
+
+
+\section{Base-case sanity check}
+
+For $n = 1$ this gives:
+\[F(m,1) = 3m - 5/6 + 1/2 + 1/3 = 3m\]
+so the formula is consistent with the base case.
+
+
+\section{Numeric verification}
+
+I also verified this formula against the exact recursive count for powers of two:
+\begin{enumerate}
+    \item $n = 2, 4, 8, 16, 32, 64$
+    \item and several $m$ values ($m=n$, $m=n+1$, $m=2n$, etc.)
+\end{enumerate}
+All matched exactly.
+
+
+\section{Summary}
+
+So the clean closed form for powers-of-two $n$ is:
+\[F(m,n) = 3 m n^2 - \frac{5}{6} n^3 + \frac{1}{2} n^2 + \frac{1}{3} n\]
+\end{document}
